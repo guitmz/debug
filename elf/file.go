@@ -47,7 +47,12 @@ type FileHeader struct {
 	Entry      uint64
 	SHTOffset  int64
 	ShStrIndex int
+	PhOffset   uint64
 	Flags      uint32
+	Size       uint16
+	PhSize     uint16
+	ShSize     uint16
+	Shnum      uint16
 }
 
 // A File represents an open ELF file.
@@ -343,6 +348,12 @@ func NewFile(r io.ReaderAt) (*File, error) {
 		shentsize = int(hdr.Shentsize)
 		shnum = int(hdr.Shnum)
 		f.ShStrIndex = int(hdr.Shstrndx)
+		f.Flags = hdr.Flags
+		f.Size = hdr.Ehsize
+		f.PhSize = hdr.Phentsize
+		f.ShSize = hdr.Shentsize
+		f.Shnum = hdr.Shnum
+		f.PhOffset = uint64(hdr.Phoff)
 	case ELFCLASS64:
 		hdr := new(Header64)
 		sr.Seek(0, seekStart)
@@ -363,6 +374,11 @@ func NewFile(r io.ReaderAt) (*File, error) {
 		shnum = int(hdr.Shnum)
 		f.ShStrIndex = int(hdr.Shstrndx)
 		f.Flags = hdr.Flags
+		f.Size = hdr.Ehsize
+		f.PhSize = hdr.Phentsize
+		f.ShSize = hdr.Shentsize
+		f.Shnum = hdr.Shnum
+		f.PhOffset = hdr.Phoff
 	}
 
 	if shnum > 0 && f.SHTOffset > 0 && (f.ShStrIndex < 0 || f.ShStrIndex >= shnum) {
